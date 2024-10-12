@@ -1,9 +1,16 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
 // TODO: Define an interface for the Coordinates object
+interface Coordinates {
+  id: string;
+  fullName: string;
+  description: string;
+  url: string;
+}
 
 // TODO: Define a class for the Weather object
+class Weather {}
 
 // TODO: Complete the WeatherService class
 class WeatherService {
