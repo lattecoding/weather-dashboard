@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-import fetch from "node-fetch";
 
 dotenv.config();
 // TODO: Define an interface for the Coordinates object

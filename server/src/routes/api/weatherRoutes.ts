@@ -13,9 +13,9 @@ router.post("/", async (req: Request, res: Response) => {
   }
 
   try {
-    const weatherData = await WeatherService.getWeatherByCity(city);
+    const weatherData = await WeatherService.getWeatherForCity(city);
 
-    await HistoryService.addCityToHistory(city);
+    await HistoryService.addCity(city);
 
     return res.status(200).json(weatherData);
   } catch (error) {
@@ -26,9 +26,9 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 // TODO: GET search history
-router.get("/history", async (req: Request, res: Response) => {
+router.get("/history", async (_: Request, res: Response) => {
   try {
-    const history = await HistoryService.getSearchHistory();
+    const history = await HistoryService.getCities();
     return res.status(200).json(history);
   } catch (error) {
     return res
@@ -41,14 +41,12 @@ router.delete("/history/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    await HistoryService.deleteCityFromHistory(id);
+    await HistoryService.removeCity(id);
     return res.status(204).send(); // No content response
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        error: "An error occurred while deleting the city from history.",
-      });
+    return res.status(500).json({
+      error: "An error occurred while deleting the city from history.",
+    });
   }
 });
 
