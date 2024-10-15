@@ -3,20 +3,28 @@ import dotenv from "dotenv";
 dotenv.config();
 // TODO: Define an interface for the Coordinates object
 interface Coordinates {
-  id: string;
-  fullName: string;
-  description: string;
-  url: string;
+  lat: number;
+  lon: number;
 }
 
 // TODO: Define a class for the Weather object
 class Weather {
-  temperature: number;
-  description: string;
+  city: string;
+  date: string;
+  icon: string;
+  iconDescription: string;
+  tempF: number;
+  windSpeed: number;
+  humidity: number;
 
-  constructor(temperature: number, description: string) {
-    this.temperature = temperature;
-    this.description = description;
+  constructor( city: string, date: string, icon: string, iconDescription: string, tempF: number, windSpeed: number, humidity: number) {
+    this.city = city;
+    this.date = date;
+    this.icon = icon;
+    this.iconDescription = iconDescription;
+    this.tempF = tempF;
+    this.windSpeed = windSpeed;
+    this.humidity = humidity;
   }
 }
 
@@ -27,7 +35,7 @@ class WeatherService {
 
   private async fetchLocationData(query: string): Promise<Coordinates[]> {
     const response = await fetch(
-      `${this.baseURL}/search.json?key=${this.apiKey}&q=${query}`,
+      `${this.baseURL}/data/2.5/weather?q=${query}&APPID=${this.apiKey}`,
     );
     if (!response.ok) {
       throw new Error("Failed to fetch location data");
@@ -37,16 +45,15 @@ class WeatherService {
 
   private destructureLocationData(locationData: any): Coordinates {
     return {
-      id: locationData.id,
-      fullName: locationData.name,
-      description: locationData.country,
-      url: locationData.url,
+      lat: locationData.coord.lat,
+      lon: locationData.coord.lon,
     };
   }
 
   private async fetchWeatherData(coordinates: Coordinates): Promise<any> {
+    const { lat, lon } = coordinates;
     const response = await fetch(
-      `${this.baseURL}/current.json?key=${this.apiKey}&q=${coordinates.fullName}`,
+      `${this.baseURL}/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${this.apiKey}`,
     );
     if (!response.ok) {
       throw new Error("Failed to fetch weather data");
@@ -59,13 +66,22 @@ class WeatherService {
     if (locations.length === 0) {
       throw new Error("No location found for the specified city");
     }
-    const location = this.destructureLocationData(locations[0]); // Get the first match
-    const weatherData = await this.fetchWeatherData(location);
+    const coordinates = this.destructureLocationData(locations); // Get the first match
+    const weatherData = await this.fetchWeatherData(coordinates);
+    console.log(weatherData.list[0]);
 
-    return new Weather(
-      weatherData.current.temp_c,
-      weatherData.current.condition.text,
-    );
+    //TODO: make a for loop to filter out only the next 5 days.
+    return weatherData.list; 
+
+    // return new Weather(
+    //   weatherData.city.name,
+    //   weatherData.list[0].dt_txt,
+    //   weatherData.list[0].weather.icon,
+    //   weatherData.list[0].weather[0].description,
+    //   weatherData.list[0].main.temp,
+    //   weatherData.list[0].wind.speed,
+    //   weatherData.list[0].main.humidity
+    // );
   }
 }
 
