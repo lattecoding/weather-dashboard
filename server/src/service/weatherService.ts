@@ -53,7 +53,7 @@ class WeatherService {
   private async fetchWeatherData(coordinates: Coordinates): Promise<any> {
     const { lat, lon } = coordinates;
     const response = await fetch(
-      `${this.baseURL}/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${this.apiKey}`,
+      `${this.baseURL}/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=imperial`,
     );
     if (!response.ok) {
       throw new Error("Failed to fetch weather data");
@@ -61,27 +61,33 @@ class WeatherService {
     return response.json();
   }
 
-  async getWeatherForCity(city: string): Promise<Weather> {
+  async getWeatherForCity(city: string): Promise<Weather[]> {
     const locations = await this.fetchLocationData(city);
     if (locations.length === 0) {
       throw new Error("No location found for the specified city");
     }
     const coordinates = this.destructureLocationData(locations); // Get the first match
     const weatherData = await this.fetchWeatherData(coordinates);
-    console.log(weatherData.list[0]);
+    const weatherList = [];
+    for (let i = 0; i < weatherData.list.length; i+=8) {
+      const element = weatherData.list[i];
+      weatherList.push(element);
+    }
+    weatherList.push(weatherData.list.at(-1));
+    const weatherOutput = weatherList.map(weatherData=>new Weather(
+      city,
+      weatherData.dt_txt,
+      weatherData.weather[0].icon,
+      weatherData.weather[0].description,
+      weatherData.main.temp,
+      weatherData.wind.speed,
+      weatherData.main.humidity
+    ));
+    
+    // console.table(weatherOutput);
 
-    //TODO: make a for loop to filter out only the next 5 days.
-    return weatherData.list; 
-
-    // return new Weather(
-    //   weatherData.city.name,
-    //   weatherData.list[0].dt_txt,
-    //   weatherData.list[0].weather.icon,
-    //   weatherData.list[0].weather[0].description,
-    //   weatherData.list[0].main.temp,
-    //   weatherData.list[0].wind.speed,
-    //   weatherData.list[0].main.humidity
-    // );
+    //NEED TO return THE DATA IN A FORMAT ASKED ON LINE 50 & 51 FROM main.ts (front end): make a for loop to filter out only the next 5 days.
+    return weatherOutput;
   }
 }
 
